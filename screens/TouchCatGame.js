@@ -54,6 +54,9 @@ export default function TouchCatGame({ route, navigation }) {
   const [showLoseAnim, setShowLoseAnim] = useState(false);
   const [showWinModal, setShowWinModal] = useState(false);
   const [showLoseModal, setShowLoseModal] = useState(false);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [completionMessage, setCompletionMessage] = useState('');
+  const [completionTitle, setCompletionTitle] = useState('');
 
   // Speed logic: levels 1-15 use current logic, 16-30 use speed of level 15
   const getCatChangeSpeed = () => {
@@ -199,13 +202,30 @@ export default function TouchCatGame({ route, navigation }) {
   };
 
   const triggerWin = async () => {
-    await playWinSound();
     setShowWinAnim(true);
     setGameOver(true);
     unlockNextLevel();
+    playWinSound();
     setTimeout(() => {
       setShowWinAnim(false);
-      setShowWinModal(true);
+      setShowWinModal(false);
+      if (level === TOTAL_LEVELS) {
+        if (mode === 'hard') {
+          setCompletionTitle('🎉 Congratulations! 🎉');
+          setCompletionMessage('You have completed all levels. Explore more games!');
+          setShowCompletionModal(true);
+        } else if (mode === 'medium') {
+          setCompletionTitle('🎉 Congratulations! 🎉');
+          setCompletionMessage('You unlocked Hard mode!');
+          setShowCompletionModal(true);
+        } else if (mode === 'easy') {
+          setCompletionTitle('🎉 Congratulations! 🎉');
+          setCompletionMessage('You unlocked Medium mode!');
+          setShowCompletionModal(true);
+        }
+      } else {
+        setShowWinModal(true);
+      }
     }, 2000);
   };
 
@@ -327,6 +347,29 @@ export default function TouchCatGame({ route, navigation }) {
           </View>
         </View>
       </Modal>
+      {/* Completion Modal */}
+      <Modal
+        visible={showCompletionModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowCompletionModal(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.completionModalBox}>
+            <Text style={styles.completionTitle}>{completionTitle}</Text>
+            <Text style={styles.completionMessage}>{completionMessage}</Text>
+            <Pressable
+              style={styles.completionButton}
+              onPress={() => {
+                setShowCompletionModal(false);
+                navigation.replace('LevelSelect', { game, mode });
+              }}
+            >
+              <Text style={styles.completionButtonText}>Back to Levels</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -443,6 +486,45 @@ const styles = StyleSheet.create({
   loseButtonText: {
     color: 'white',
     fontSize: 16,
+    fontWeight: 'bold',
+  },
+  completionModalBox: {
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: 24,
+    padding: 32,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    borderWidth: 2,
+    borderColor: '#4CAF50',
+    maxWidth: '80%',
+  },
+  completionTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  completionMessage: {
+    fontSize: 18,
+    color: '#333',
+    marginBottom: 24,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  completionButton: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 12,
+    elevation: 2,
+  },
+  completionButtonText: {
+    color: 'white',
+    fontSize: 18,
     fontWeight: 'bold',
   },
 }); 
